@@ -9,22 +9,59 @@ fn main() {
     //let mut count: i32 = 0;
     let mut txt = Vec::new();
     let mut buf = Vec::new();
+    let mut inc_comp: i64 = 0;
+    let mut inc_filename: i64 = 0;
+    let mut inc_name: i64 = 0;
 
+    let mut file_name = String::from("");
+    let mut name = String::from("");
     // The `Reader` does not implement `Iterator` because it outputs borrowed data (`Cow`s)
     loop {
         match reader.read_event(&mut buf) {
             Ok(Event::Start(ref e)) => match e.name() {
-                b"compound" => println!(
-                    "attributes values: {:?}",
-                    e.attributes().map(|a| a.unwrap().value).collect::<Vec<_>>()
-                ),
+                b"compound" => {
+                    println!(
+                        "attributes values: {:?}",
+                        e.attributes().map(|a| a.unwrap().value).collect::<Vec<_>>()
+                    );
+                    inc_comp += 1;
+                }
+                b"filename" => {
+                    if inc_comp > 0 {
+                        inc_filename += 1;
+                    }
+                }
+                b"name" => {
+                    if inc_comp > 0 {
+                        inc_name += 1;
+                    }
+                }
                 //b"name" =>  println!("data: {:?}", e.att),
                 _ => (),
             },
-            Ok(Event::Text(e)) => txt.push(e.unescape_and_decode(&reader).unwrap()),
+            Ok(Event::Text(e)) => {
+                if inc_filename > 0 {
+                    file_name = e.unescape_and_decode(&reader).unwrap().to_string();
+                }
+                if inc_name > 0 {
+                    name = e.unescape_and_decode(&reader).unwrap().to_string();
+                }
+            }
             Ok(Event::Eof) => break, // exits the loop when reaching end of file
-            Ok(Event::End(ref e)) => match e.name(){
-                b"compound" => println!("/compound"),
+            Ok(Event::End(ref e)) => match e.name() {
+                b"compound" => {
+                    println!("/compound");
+                    inc_comp -= 1;
+                    txt.push(name.to_string() + ":" + &file_name.to_string());
+                    name.clear();
+                    file_name.clear();
+                }
+                b"filename" => {
+                    inc_filename -= 1;
+                }
+                b"name" => {
+                    inc_name -= 1;
+                }
                 _ => (),
             },
             Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
@@ -34,5 +71,5 @@ fn main() {
         // if we don't keep a borrow elsewhere, we can clear the buffer to keep memory usage low
         buf.clear();
     }
-    println!("Hello, world! {:?}",txt);
+    println!("Hello, world! {:?}", txt);
 }
