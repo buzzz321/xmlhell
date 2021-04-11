@@ -3,7 +3,7 @@
     <name>name1</name>
     <random>1</random>
 </compound>
-<compound>
+<compound atrrib = "hello">
     <filename>fname2</filename>
     <name>name2</name>
     <random>2</random>

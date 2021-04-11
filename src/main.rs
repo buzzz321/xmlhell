@@ -25,6 +25,16 @@ fn main() {
                         e.attributes().map(|a| a.unwrap().value).collect::<Vec<_>>()
                     );
                     inc_comp += 1;
+                    let found = e
+                        .attributes()
+                        .find(|item| item.as_ref().unwrap().key == b"attrib");
+                    match found {
+                        Some(e) if e.is_ok() => {
+                            let res = e.unwrap();
+                            println!("---> {:?}", res);
+                        }
+                        _ => (),
+                    }
                 }
                 b"filename" => {
                     if inc_comp > 0 {
