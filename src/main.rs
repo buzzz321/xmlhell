@@ -1,12 +1,12 @@
 use quick_xml::{events::Event, Reader};
 use std::fs;
+//use std::str;
 
 fn main() {
     let xml = fs::read_to_string(r#"test.xml"#).expect("Something went wrong reading the file");
     let mut reader = Reader::from_str(xml.as_str());
     reader.trim_text(true);
 
-    //let mut count: i32 = 0;
     let mut txt = Vec::new();
     let mut buf = Vec::new();
     let mut inc_comp: i64 = 0;
@@ -15,25 +15,28 @@ fn main() {
 
     let mut file_name = String::from("");
     let mut name = String::from("");
-    // The `Reader` does not implement `Iterator` because it outputs borrowed data (`Cow`s)
     loop {
         match reader.read_event(&mut buf) {
             Ok(Event::Start(ref e)) => match e.name() {
                 b"compound" => {
-                    println!(
+                   /* println!(
                         "attributes values: {:?}",
                         e.attributes().map(|a| a.unwrap().value).collect::<Vec<_>>()
                     );
+                    */
                     inc_comp += 1;
-                    let found = e
-                        .attributes()
-                        .find(|item| item.as_ref().unwrap().key == b"attrib");
+                    let found = e.attributes().find(|item| 
+                        //println!("~~>{:?}", item.as_ref().unwrap().key == b"attrib");
+                        item.as_ref().unwrap().key == b"attrib"
+                    );
                     match found {
-                        Some(e) if e.is_ok() => {
-                            let res = e.unwrap();
-                            println!("---> {:?}", res);
+                        Some(e) => {
+                            if e.is_ok() {
+                                let res = e.unwrap();
+                                println!("---> {:?}", res);
+                            }
                         }
-                        _ => (),
+                        None => (),
                     }
                 }
                 b"filename" => {
@@ -75,10 +78,9 @@ fn main() {
                 _ => (),
             },
             Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
-            _ => (), // There are several other `Event`s we do not consider here
+            _ => (), 
         }
 
-        // if we don't keep a borrow elsewhere, we can clear the buffer to keep memory usage low
         buf.clear();
     }
     println!("Hello, world! {:?}", txt);
