@@ -15,6 +15,8 @@ fn main() {
 
     let mut file_name = String::from("");
     let mut name = String::from("");
+    let mut attrib =String::from("");
+
     loop {
         match reader.read_event(&mut buf) {
             Ok(Event::Start(ref e)) => match e.name() {
@@ -33,7 +35,8 @@ fn main() {
                         Some(e) => {
                             if e.is_ok() {
                                 let res = e.unwrap();
-                                println!("---> {:?}", res);
+                                //println!("---> {:?}", res);
+                                attrib = String::from_utf8(res.value.into_owned()).unwrap();
                             }
                         }
                         None => (),
@@ -68,6 +71,7 @@ fn main() {
                     txt.push(name.to_string() + ":" + &file_name.to_string());
                     name.clear();
                     file_name.clear();
+                    attrib.clear();
                 }
                 b"filename" => {
                     inc_filename -= 1;
